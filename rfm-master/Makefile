@@ -492,7 +492,7 @@ HEXSIZE = $(SIZE) --target=$(FORMAT) $(TARGET).hex
 # different command line parameters for "avr-size" on Linux and Windows.
 #ifdef ComSpec
   # WIN32
-  ELFSIZE = $(SIZE) --mcu=$(MCU) --format=avr $(TARGET).elf
+  ELFSIZE = $(SIZE) $(TARGET).elf
 #else
   # Linux
 #  ELFSIZE = $(SIZE)  $(TARGET).elf

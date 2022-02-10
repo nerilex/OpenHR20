@@ -48,7 +48,7 @@
 # set a default - can be overriden on the command line with:
 #   make HW=THERMOTRONIC <...>
 # HW = THERMOTRONIC
-HW = HONEYWELL
+HW ?= HONEYWELL
 # HW = HR25
 
 # set up the TARGET and MCU based on HW
@@ -395,7 +395,8 @@ LDFLAGS += $(PRINTF_LIB) $(SCANF_LIB) $(MATH_LIB)
 # Type: avrdude -c ?
 # to get a full listing.
 #
-AVRDUDE_PROGRAMMER = avrispmkII  #stk500v2
+#AVRDUDE_PROGRAMMER = avrispmkII  #stk500v2
+AVRDUDE_PROGRAMMER = atmelice
 
 # com1 = serial port. Use lpt1 to connect to parallel port.
 AVRDUDE_PORT = usb  #com1    # programmer connected to serial device
@@ -406,6 +407,7 @@ AVRDUDE_DELAY = -B 12
 AVRDUDE_WRITE_FLASH = -U flash:w:$(TARGET).hex
 #AVRDUDE_WRITE_EEPROM = -U eeprom:w:$(TARGET).eep
 
+AVRDUDE_PART = m169
 
 # Uncomment the following if you want avrdude's erase cycle counter.
 # Note that this counter needs to be initialized first using -Yn,
@@ -421,7 +423,7 @@ AVRDUDE_WRITE_FLASH = -U flash:w:$(TARGET).hex
 # to submit bug reports.
 #AVRDUDE_VERBOSE = -v -v
 
-AVRDUDE_FLAGS = -p $(MCU) -P $(AVRDUDE_PORT) -c $(AVRDUDE_PROGRAMMER) $(AVRDUDE_DELAY)
+AVRDUDE_FLAGS = -p $(AVRDUDE_PART) -P $(AVRDUDE_PORT) -c $(AVRDUDE_PROGRAMMER) $(AVRDUDE_DELAY)
 AVRDUDE_FLAGS += $(AVRDUDE_NO_VERIFY)
 AVRDUDE_FLAGS += $(AVRDUDE_VERBOSE)
 AVRDUDE_FLAGS += $(AVRDUDE_ERASE_COUNTER)
@@ -445,7 +447,8 @@ DEBUG_BACKEND = avarice
 GDBINIT_FILE = __avr_gdbinit
 
 # When using avarice settings for the JTAG
-JTAG_DEV = /dev/com1
+#JTAG_DEV = --jtag /dev/com1
+JTAG_DEV = --edbg
 
 # Debugging port used to communicate between GDB / avarice / simulavr.
 DEBUG_PORT = 4242
@@ -553,7 +556,7 @@ end:
 # Display size of file.
 HEXSIZE = $(SIZE) --target=$(FORMAT) $(TARGET).hex
 
-ELFSIZE = $(SIZE) --mcu=$(MCU) --format=avr $(TARGET).elf
+ELFSIZE = $(SIZE) $(TARGET).elf
 
 
 sizebefore:
@@ -595,9 +598,8 @@ endif
 debug: gdb-config $(TARGET).elf
 ifeq ($(DEBUG_BACKEND), avarice)
 	@echo Starting AVaRICE - Press enter when "waiting to connect" message displays.
-	@$(WINSHELL) /c start avarice --jtag $(JTAG_DEV) --erase --program --file \
-	$(TARGET).elf $(DEBUG_HOST):$(DEBUG_PORT)
-	@$(WINSHELL) /c pause
+	@avarice $(JTAG_DEV) $(DEBUG_HOST):$(DEBUG_PORT)
+	
 
 else
 	@$(WINSHELL) /c start simulavr --gdbserver --device $(MCU) --clock-freq \
