@@ -152,6 +152,10 @@ ADEFS = -DF_CPU=$(F_CPU) -DXTEA_ENC
 # We need only encryption
 # ADEFS+=-DXTEA_DEC
 
+# This function converts an mcu-name (as used by gcc) to a part-name as expected
+# by avrdude
+MCU_TO_PART=$(patsubst atmega%,m%,$(patsubst atiny%,t%,$1))
+
 
 # Default options values, no manual flag overidden because of incompatibilites
 # Incompatibilities handled below with $(error ...)
@@ -407,7 +411,7 @@ AVRDUDE_DELAY = -B 12
 AVRDUDE_WRITE_FLASH = -U flash:w:$(TARGET).hex
 #AVRDUDE_WRITE_EEPROM = -U eeprom:w:$(TARGET).eep
 
-AVRDUDE_PART = m169
+AVRDUDE_PART = $(call MCU_TO_PART,$(MCU))
 
 # Uncomment the following if you want avrdude's erase cycle counter.
 # Note that this counter needs to be initialized first using -Yn,
