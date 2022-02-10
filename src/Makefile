@@ -154,7 +154,11 @@ ADEFS = -DF_CPU=$(F_CPU) -DXTEA_ENC
 
 # This function converts an mcu-name (as used by gcc) to a part-name as expected
 # by avrdude
-MCU_TO_PART=$(patsubst atmega%,m%,$(patsubst atiny%,t%,$1))
+MCU_TO_PART= \
+  $(patsubst m169p,m169, \
+  $(patsubst atmega%,m%, \
+  $(patsubst atiny%,t%,  \
+  $1 )))
 
 
 # Default options values, no manual flag overidden because of incompatibilites
