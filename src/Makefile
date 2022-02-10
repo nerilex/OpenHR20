@@ -45,11 +45,11 @@
 # 5.4.2008: Dario Carluccio
 #           command line parameters for "avr-size" on Linux and Windows.
 
-# set a default - can be overriden on the command line with:
-#   make HW=THERMOTRONIC <...>
-# HW = THERMOTRONIC
-HW ?= HONEYWELL
-# HW = HR25
+# include local configurations (debugger, programmer, ....)
+-include make_conf.local
+
+# include fallback / default configurations (debugger, programmer, ....)
+include make_conf.default
 
 # set up the TARGET and MCU based on HW
 # TARGET = Target file name (without extension).
@@ -165,46 +165,6 @@ ifeq ($(HW),THERMOTRONIC)
 else
  RFM?=1
 endif
-# Set default baud rate for RFM
-RFM_BAUD_RATE?=19200
-# Set default HR slave address, valid range is 1-28
-RFM_DEVICE_ADDRESS?=28
-# Set default security keys
-SECURITY_KEY_0?=0x01
-SECURITY_KEY_1?=0x23
-SECURITY_KEY_2?=0x45
-SECURITY_KEY_3?=0x67
-SECURITY_KEY_4?=0x89
-SECURITY_KEY_5?=0xab
-SECURITY_KEY_6?=0xcd
-SECURITY_KEY_7?=0xef
-# Main RFM frequency (depends on RFM variant)
-RFM_FREQ_MAIN?=868
-# Decimal part of the RFM frequency
-RFM_FREQ_FINE?=0.35
-# Enable diagnostic (RFM_TUNING=1) to fine tune RFM frequency
-RFM_TUNING?=1
-# Various options
-TEMP_COMPENSATE_OPTION?=0
-REMOTE_SETTING_ONLY?=$(RFM)
-HW_WINDOW_DETECTION?=0
-MENU_SHOW_BATTERY?=1
-MOTOR_COMPENSATE_BATTERY?=0
-NO_AUTORETURN_FROM_ALT_MENUES?=0
-CALIBRATION_RESETS_sumError?=0
-BLOCK_INTEGRATOR_AFTER_VALVE_CHANGE?=0
-BOOST_CONTROLER_AFTER_CHANGE?=0
-ifeq ($(RFM),1)
- RFM_WIRE?=JD_INTERNAL
-endif
-ifeq ($(RFM_WIRE),MARIOJTAG)
- DISABLE_JTAG?=1
-endif
-ifeq ($(RFM_WIRE),TK_INTERNAL)
- DISABLE_JTAG?=1
-endif
-# Define to 1 to disable JTAG
-DISABLE_JTAG?=0
 
 # Check options and issue an error if consistent (rather than silently forcing compatible options)
 ifeq ($(RFM),1)
@@ -391,76 +351,6 @@ LDFLAGS += $(PRINTF_LIB) $(SCANF_LIB) $(MATH_LIB)
 #LDFLAGS += -T linker_script.x
 #LDFLAGS += --relax
 #LDFLAGS += --combine -fwhole-program
-
-
-#---------------- Programming Options (avrdude) ----------------
-
-# Programming hardware
-# Type: avrdude -c ?
-# to get a full listing.
-#
-#AVRDUDE_PROGRAMMER = avrispmkII  #stk500v2
-AVRDUDE_PROGRAMMER = atmelice
-
-# com1 = serial port. Use lpt1 to connect to parallel port.
-AVRDUDE_PORT = usb  #com1    # programmer connected to serial device
-
-# avrdude speed delay for usbprog
-AVRDUDE_DELAY = -B 12
-
-AVRDUDE_WRITE_FLASH = -U flash:w:$(TARGET).hex
-#AVRDUDE_WRITE_EEPROM = -U eeprom:w:$(TARGET).eep
-
-AVRDUDE_PART = $(call MCU_TO_PART,$(MCU))
-
-# Uncomment the following if you want avrdude's erase cycle counter.
-# Note that this counter needs to be initialized first using -Yn,
-# see avrdude manual.
-#AVRDUDE_ERASE_COUNTER = -y
-
-# Uncomment the following if you do /not/ wish a verification to be
-# performed after programming the device.
-#AVRDUDE_NO_VERIFY = -V
-
-# Increase verbosity level.  Please use this when submitting bug
-# reports about avrdude. See <http://savannah.nongnu.org/projects/avrdude>
-# to submit bug reports.
-#AVRDUDE_VERBOSE = -v -v
-
-AVRDUDE_FLAGS = -p $(AVRDUDE_PART) -P $(AVRDUDE_PORT) -c $(AVRDUDE_PROGRAMMER) $(AVRDUDE_DELAY)
-AVRDUDE_FLAGS += $(AVRDUDE_NO_VERIFY)
-AVRDUDE_FLAGS += $(AVRDUDE_VERBOSE)
-AVRDUDE_FLAGS += $(AVRDUDE_ERASE_COUNTER)
-
-
-
-#---------------- Debugging Options ----------------
-
-# For simulavr only - target MCU frequency.
-DEBUG_MFREQ = $(F_CPU)
-
-# Set the DEBUG_UI to either gdb or insight.
-# DEBUG_UI = gdb
-DEBUG_UI = insight
-
-# Set the debugging back-end to either avarice, simulavr.
-DEBUG_BACKEND = avarice
-#DEBUG_BACKEND = simulavr
-
-# GDB Init Filename.
-GDBINIT_FILE = __avr_gdbinit
-
-# When using avarice settings for the JTAG
-#JTAG_DEV = --jtag /dev/com1
-JTAG_DEV = --edbg
-
-# Debugging port used to communicate between GDB / avarice / simulavr.
-DEBUG_PORT = 4242
-
-# Debugging host used to communicate between GDB / avarice / simulavr, normally
-#     just set to localhost unless doing some sort of crazy debugging when
-#     avarice is running on a different computer.
-DEBUG_HOST = localhost
 
 
 
