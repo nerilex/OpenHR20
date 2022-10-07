@@ -73,12 +73,18 @@
 #define REVISION "$Rev$"
 #endif
 
+#include "uart_config.h"
+
+#ifndef THERMOTRONIC
+#define THERMOTRONIC 0
+#endif
+
 // Parameters for the COMM-Port
 #define COM_BAUD_RATE 9600
 #if THERMOTRONIC != 1 //No serialport implementet yet
 // Note we should only enable of of the following at one time
 /* we support UART */
-//#define COM_UART 1
+#define COM_UART 1
 
 /* Our default Adress, if not set or invalid */
 /* #define COM_DEF_ADR 1 */

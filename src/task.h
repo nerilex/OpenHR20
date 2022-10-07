@@ -31,6 +31,7 @@
  * $Rev$
  */
 
+#include <avr/io.h>
 #include "config.h"
 
 #pragma once

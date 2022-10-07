@@ -56,8 +56,11 @@
 #include "debug.h"
 #include "menu.h"
 #include "com.h"
-#include "common/uart.h"
 #include "controller.h"
+#include "rtc.h"
+
+#define UART_need_clock() (UCSR0B & (_BV(TXEN0) | _BV(RXEN0)))
+#define UART_enable_rx() (UCSR0B |= _BV(RXEN0) | _BV(RXCIE0))
 
 #if RFM
 #include "rfm_config.h"
@@ -88,6 +91,7 @@ bool reboot = false;
 #warning "This code has not been tested with older versions."
 #endif
 
+
 /*!
  *******************************************************************************
  * main program
@@ -114,7 +118,7 @@ int __attribute__ ((noreturn)) main(void)
 			;     //fatal error, stop startup
 		}
 	}
-#if THERMOTRONIC != 1
+#if !defined(THERMOTRONIC) || (THERMOTRONIC != 1)
 	COM_init();
 #endif
 #if RFM
@@ -533,10 +537,6 @@ static inline void init(void)
 ISR(PCINT0_vect)
 {
 	uint8_t pine = PINE;
-
-#ifdef COM_UART
-	UART_interrupt(pine);
-#endif
 
 	MOTOR_interrupt(pine);
 

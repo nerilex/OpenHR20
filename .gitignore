@@ -35,3 +35,4 @@ rfm-master/master.txt
 bin/*
 !bin/ReadMe.txt
 *.gch
+/Debug/

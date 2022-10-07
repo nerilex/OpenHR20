@@ -39,7 +39,7 @@
 
 #include "config.h"
 #include "com.h"
-#include "common/uart.h"
+#include "common/avr_uart_i.h"
 #include "main.h"
 #include "common/rtc.h"
 #include "adc.h"
@@ -57,14 +57,6 @@
 
 #define ENABLE_LOCAL_COMMANDS 1
 
-static char tx_buff[TX_BUFF_SIZE];
-static char rx_buff[RX_BUFF_SIZE];
-
-static uint8_t tx_buff_in = 0;
-static uint8_t tx_buff_out = 0;
-static uint8_t rx_buff_in = 0;
-static uint8_t rx_buff_out = 0;
-
 /*!
  *******************************************************************************
  *  \brief transmit bytes
@@ -73,62 +65,9 @@ static uint8_t rx_buff_out = 0;
  ******************************************************************************/
 void COM_putchar(char c)
 {
-	cli();
-	if ((tx_buff_in + 1) % TX_BUFF_SIZE != tx_buff_out)
-	{
-		tx_buff[tx_buff_in++] = c;
-		tx_buff_in %= TX_BUFF_SIZE;
-	}
-	sei();
+	uart0_putc(c);
 }
 
-/*!
- *******************************************************************************
- *  \brief support for interrupt for transmit bytes
- *
- *  \note
- ******************************************************************************/
-char COM_tx_char_isr(void)
-{
-	char c = '\0';
-
-	if (tx_buff_in != tx_buff_out)
-	{
-		c = tx_buff[tx_buff_out++];
-		tx_buff_out %= TX_BUFF_SIZE;
-	}
-	return c;
-}
-
-static volatile uint8_t COM_requests;
-/*!
- *******************************************************************************
- *  \brief support for interrupt for receive bytes
- *
- *  \note
- ******************************************************************************/
-void COM_rx_char_isr(char c)
-{
-	if (c != '\0')                          // ascii based protocol, \0 char is not alloweed, ignore it
-	{
-		if (c == '\r')
-		{
-			c = '\n';               // mask diffrence between operating systems
-		}
-		rx_buff[rx_buff_in++] = c;
-		rx_buff_in %= RX_BUFF_SIZE;
-		if (rx_buff_in == rx_buff_out)   // buffer overloaded, drop oldest char
-		{
-			rx_buff_out++;
-			rx_buff_out %= RX_BUFF_SIZE;
-		}
-		if (c == '\n')
-		{
-			task |= TASK_COM;
-			COM_requests++;
-		}
-	}
-}
 
 /*!
  *******************************************************************************
@@ -140,22 +79,7 @@ static char COM_getchar(void)
 {
 	char c;
 
-	cli();
-	if (rx_buff_in != rx_buff_out)
-	{
-		c = rx_buff[rx_buff_out++];
-		rx_buff_out %= RX_BUFF_SIZE;
-		if (c == '\n')
-		{
-			COM_requests--;
-		}
-	}
-	else
-	{
-		COM_requests = 0;
-		c = '\0';
-	}
-	sei();
+	c = uart0_getc();
 	return c;
 }
 
@@ -167,16 +91,7 @@ static char COM_getchar(void)
  ******************************************************************************/
 void COM_flush(void)
 {
-	if (tx_buff_in != tx_buff_out)
-	{
-#ifdef COM_UART
-		UART_startSend();
-#elif THERMOTRONIC                      //UART for THERMOTRONIC not implemented
-#else
-		//#error "need todo"
-		tx_buff_in = tx_buff_out;
-#endif
-	}
+	uart0_flush();
 }
 
 
@@ -290,7 +205,11 @@ static void print_version(bool sync)
 	}
 }
 
-
+static void check_command_termination(uint8_t c) {
+    if (c == '\n') {
+        task |= TASK_COM;
+    }
+}
 
 /*!
  *******************************************************************************
@@ -300,10 +219,11 @@ static void print_version(bool sync)
  ******************************************************************************/
 void COM_init(void)
 {
-	print_version(false);
 #ifdef COM_UART
-	UART_init();
+	uart0_init();
+	uart0_sethook(check_command_termination);
 #endif
+    print_version(false);
 	COM_flush();
 }
 
@@ -498,7 +418,7 @@ void COM_commad_parse(void)
 {
 	char c;
 
-	while (COM_requests)
+	while (uart0_dataavail())
 	{
 		switch (c = COM_getchar())
 		{

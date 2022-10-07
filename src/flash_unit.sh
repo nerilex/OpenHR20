@@ -5,11 +5,11 @@ set -o errexit
 #set -o xtrace
 
 # defaults
-PROGRAMMER=dragon_jtag
+PROGRAMMER=atmelice
 PROGRAMMER_PORT=usb
 PROGRAMMER_OPTS=
 # should we set fuses in hr20's atmega? this has to be done only once
-SETFUSES=0
+SETFUSES=1
 BASENAME=hr20
 BACKUP=1
 EEPROM=1

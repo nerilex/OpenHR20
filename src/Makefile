@@ -100,8 +100,7 @@ SRC_B =  \
     cmac.c \
     eeprom.c \
     rfm.c \
-    uart.c \
-    wireless.c
+    wireless.c \
 
 
 
@@ -112,13 +111,16 @@ SRC_B =  \
 #     Even though the DOS/Win* filesystem matches both .s and .S the same,
 #     it will preserve the spelling of the filenames, and gcc itself does
 #     care about how the name is spelled on its command-line.
-ASRC = xtea-asm.S
+ASRC = \
+    xtea-asm.S \
+    avr_uart_i-asm.S \
+    circularbytebuffer-asm.S \
 
 
 # Optimization level, can be [0, 1, 2, 3, s].
 #     0 = turn off optimization. s = optimize for size.
 #     (Note: 3 is not always the best optimization level. See avr-libc FAQ.)
-OPT = s -mcall-prologues
+OPT = 1 -mcall-prologues
 
 
 # Debugging format.
@@ -132,7 +134,7 @@ DEBUG = dwarf-2
 #     Each directory must be seperated by a space.
 #     Use forward slashes for directory separators.
 #     For a directory that has spaces, enclose it in quotes.
-EXTRAINCDIRS = ..
+EXTRAINCDIRS = .. $(SRC_B_DIR)
 
 
 # Compiler flag to set the C Standard level.
@@ -291,7 +293,7 @@ endif
 #             files -- see avr-libc docs [FIXME: not yet described there]
 #  -listing-cont-lines: Sets the maximum number of continuation lines of hex
 #       dump that will be displayed for a given single line of source input.
-ASFLAGS = $(ADEFS) -Wa,-adhlns=$(@:%.o=%.lst),-gstabs,--listing-cont-lines=100
+ASFLAGS = $(ADEFS) -g -Wa,-adhlns=$(@:%.o=%.lst),-gstabs,--listing-cont-lines=100
 
 
 #---------------- Library Options ----------------
@@ -399,7 +401,7 @@ MSG_CREATING_LIBRARY = Creating library:
 
 
 # Define all object files.
-OBJ = $(SRC:%.c=$(OBJDIR)/%.o) $(ASRC:%.S=$(OBJDIR)/%.o) $(SRC_B:%.c=$(OBJDIR)/%.o)
+OBJ = $(ASRC:%.S=$(OBJDIR)/%.o) $(SRC:%.c=$(OBJDIR)/%.o)  $(SRC_B:%.c=$(OBJDIR)/%.o)
 
 # Define all listing files.
 LST = $(SRC:%.c=$(OBJDIR)/%.lst) $(ASRC:%.S=$(OBJDIR)/%.lst) $(SRC_B:%.c=$(OBJDIR)/%.lst)
@@ -412,7 +414,7 @@ GENDEPFLAGS = -MMD -MP -MF .dep/$(@F).d
 # Combine all necessary flags and optional flags.
 # Add target processor to flags.
 ALL_CFLAGS = -mmcu=$(MCU) -I. $(CFLAGS) $(GENDEPFLAGS)
-ALL_ASFLAGS = -mmcu=$(MCU) -I. -x assembler-with-cpp $(ASFLAGS)
+ALL_ASFLAGS = -mmcu=$(MCU) -I. $(patsubst %,-I%,$(EXTRAINCDIRS)) -x assembler-with-cpp $(ASFLAGS)
 
 
 
