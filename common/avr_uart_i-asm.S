@@ -139,6 +139,26 @@ uart0_ctx:
 #define BAUD UART0_BAUD_RATE
 #include "setbaud_asm.inc"
 
+.macro UART0_TX_INDICATOR_ON
+#if UART0_TX_INDICATOR
+  #if UART0_TX_INDICATOR_ACTIVE_HIGH
+    sbi _SFR_IO_ADDR(UART0_TX_INDICATOR_PORT), UART0_TX_INDICATOR_PIN
+  #else
+    cbi _SFR_IO_ADDR(UART0_TX_INDICATOR_PORT), UART0_TX_INDICATOR_PIN
+  #endif
+#endif
+.endm
+
+.macro UART0_TX_INDICATOR_OFF
+#if UART0_TX_INDICATOR
+  #if UART0_TX_INDICATOR_ACTIVE_HIGH
+    cbi _SFR_IO_ADDR(UART0_TX_INDICATOR_PORT), UART0_TX_INDICATOR_PIN
+  #else
+    sbi _SFR_IO_ADDR(UART0_TX_INDICATOR_PORT), UART0_TX_INDICATOR_PIN
+  #endif
+#endif
+.endm
+
 	.section .text
 /******************************************************************************/	
 /*
@@ -170,6 +190,10 @@ uart0_ctx:
  */
 .global uart0_init
 uart0_init:
+#if UART0_TX_INDICATOR
+	sbi _SFR_IO_ADDR(UART0_TX_INDICATOR_DDR), UART0_TX_INDICATOR_PIN
+	UART0_TX_INDICATOR_OFF
+#endif
 	ldi r24, UART0_RXBUFFER_SIZE
 	clr r25
 	ldi r22, lo8(uart0_ctx+UART0_CBB_RX_OFFSET)
@@ -247,6 +271,7 @@ TX_ISR:
 	cpi r25, 0xff
 	brne 20f
 	CLEAR_BIT_IO UCSR0B, UDRIE0, r24
+	UART0_TX_INDICATOR_OFF
 	rjmp 99f
 20:
 #if UART0_SWFLOWCTRL
@@ -287,6 +312,7 @@ TX_ISR:
  */
 .global uart0_putc
 uart0_putc:
+	UART0_TX_INDICATOR_ON
 	mov r18, r24
 #if UART0_SWFLOWCTRL
 	ldi r30, lo8(uart0_ctx+UART0_TXON_OFFSET)

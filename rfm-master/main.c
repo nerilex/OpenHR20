@@ -133,7 +133,7 @@ int __attribute__ ((noreturn)) main(void)
 		if (task & TASK_RFM)
 		{
 			task &= ~TASK_RFM;
-			// PORTE |= (1<<PE2);
+//			PORTE |= (1<<PE2);
 
 			if (rfm_mode == rfmmode_tx_done)
 			{
