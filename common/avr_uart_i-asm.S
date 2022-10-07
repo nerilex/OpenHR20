@@ -91,6 +91,15 @@
 # define TX_ISR USART_UDRE_vect
 #endif
 
+#ifdef USART0_TX_vect
+# define TX_COMPLETE_ISR USART0_TX_vect
+#endif
+
+#ifdef USART_TX_vect
+# define TX_COMPLETE_ISR USART_TX_vect
+#endif
+
+
 #define CBB_SIZE 10
 
 #define UART0_CBB_RX_OFFSET  0
@@ -231,7 +240,7 @@ uart0_init:
 #endif
 	ldi r24, (UART0_PARATY<<4)|(UART0_STOPBITS<<3)|((UART0_DATABITS&3)<<1)
 	STORE_IO UCSR0C, r24
-	ldi r24, _BV(RXCIE0) | _BV(UDRIE0) | _BV(RXEN0) | _BV(TXEN0)  
+	ldi r24, _BV(RXCIE0) | _BV(UDRIE0) | _BV(RXEN0) | _BV(TXEN0) | (UART0_TX_INDICATOR << TXCIE0)
 	STORE_IO UCSR0B, r24
 	sei
 	ret
@@ -271,7 +280,6 @@ TX_ISR:
 	cpi r25, 0xff
 	brne 20f
 	CLEAR_BIT_IO UCSR0B, UDRIE0, r24
-	UART0_TX_INDICATOR_OFF
 	rjmp 99f
 20:
 #if UART0_SWFLOWCTRL
@@ -292,6 +300,13 @@ TX_ISR:
 	pop r1
 	ret
 	
+#if UART0_TX_INDICATOR
+.global TX_COMPLETE_ISR
+TX_COMPLETE_ISR:
+	UART0_TX_INDICATOR_OFF
+	reti
+#endif
+
 .section .text
 /******************************************************************************/
 /*
