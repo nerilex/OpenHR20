@@ -148,6 +148,7 @@ CSTANDARD = -std=gnu99
 # List of Makevariable names, which should be passed as defines to the compiler and assembler
 define GLOBAL_DEFINE_VARS =
     RFM
+    MODBUS
     TEMP_COMPENSATE_OPTION
     HW_WINDOW_DETECTION
     MENU_SHOW_BATTERY
