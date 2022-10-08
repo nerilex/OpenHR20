@@ -568,6 +568,9 @@ extcoff: $(TARGET).elf
 	@echo "BLOCK_INTEGRATOR_AFTER_VALVE_CHANGE=$(BLOCK_INTEGRATOR_AFTER_VALVE_CHANGE)" >> $@
 	@echo "BOOST_CONTROLER_AFTER_CHANGE=$(BOOST_CONTROLER_AFTER_CHANGE)" >> $@
 	@echo "RFM_WIRE=$(RFM_WIRE)" >> $@
+	@echo "MODBUS=$(MODBUS)" >> $@
+	@echo "MODBUS_DEVICE_ADDRESS=$(MODBUS_DEVICE_ADDRESS)" >> $@
+	@echo "MODBUS_BAUD_RATE=$(MODBUS_BAUD_RATE)" >> $@
 	@echo "DISABLE_JTAG=$(DISABLE_JTAG)" >> $@
 	@echo "==================================" >> $@
 	@echo >> $@
