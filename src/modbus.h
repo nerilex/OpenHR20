@@ -24,46 +24,17 @@
  */
 
 /*!
- * \file       com.h
- * \brief      communication layer
- * \author     Jiri Dobry <jdobry-at-centrum-dot-cz>
- * \date       $Date$
- * $Rev$
+ * \file       modbus.h
+ * \brief      modbus communication functions
+ * \author     bg nerilex <bg@nerilex.org>
  */
 
 #pragma once
 
 #include "debug.h"
 
-char COM_tx_char_isr(void);
+#define COM_init() modbus_init()
+#define COM_command_parse() modbus_handle_command()
 
-void COM_rx_char_isr(char c);
-
-void COM_init(void);
-
-void COM_print_debug(uint8_t type);
-
-void COM_commad_parse(void);
-#if RFM == 1
-void COM_wireless_command_parse(uint8_t *rfm_framebuf, uint8_t rfm_framepos);
-#endif
-
-void COM_debug_print_motor(int8_t dir, uint16_t m, uint8_t pwm);
-void COM_debug_print_temperature(uint16_t t);
-
-#if DEBUG_DUMP_RFM
-void COM_dump_packet(uint8_t *d, uint8_t len, bool mac_ok);
-// void COM_mac_ok(void);
-#else
-#define COM_dump_packet(d, len, mac_ok)
-// #define COM_mac_ok() ()
-#endif
-#if DEBUG_PRINT_ADDITIONAL_TIMESTAMPS
-void COM_print_time(uint8_t c);
-#else
-#define COM_print_time(c)
-#endif
-
-void COM_putchar(char c);
-void COM_flush(void);
-void COM_printStr16(const char *s, uint16_t x);
+void modbus_init(void);
+void modbus_handle_command(void);
