@@ -416,7 +416,7 @@ static void print_idx(char t, uint8_t i)
  *      \note	Lxx\n - Lock keys, and return lock status (00=unlock, 01=lock, 02=status only)
  *
  ******************************************************************************/
-void COM_commad_parse(void)
+void COM_command_parse(void)
 {
 	char c;
 

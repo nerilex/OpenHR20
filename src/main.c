@@ -234,7 +234,7 @@ int __attribute__ ((noreturn)) main(void)
 		if (task & TASK_COM)
 		{
 			task &= ~TASK_COM;
-			COM_commad_parse();
+			COM_command_parse();
 			continue; // on most case we have only 1 task, improve time to sleep
 		}
 
