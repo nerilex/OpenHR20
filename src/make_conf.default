@@ -27,7 +27,7 @@ HW ?= HONEYWELL
 #---------------- MODBUS Options ----------------
 
 MODBUS_BAUD_RATE=19200
-MODBUS_ADDRESS?=28
+MODBUS_DEVICE_ADDRESS?=28
 
 
 #---------------- RFM Options ----------------

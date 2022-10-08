@@ -145,13 +145,73 @@ EXTRAINCDIRS = .. $(SRC_B_DIR)
 #     gnu99 = c99 plus GCC extensions
 CSTANDARD = -std=gnu99
 
+# List of Makevariable names, which should be passed as defines to the compiler and assembler
+define GLOBAL_DEFINE_VARS =
+    RFM
+    TEMP_COMPENSATE_OPTION
+    HW_WINDOW_DETECTION
+    MENU_SHOW_BATTERY
+    MOTOR_COMPENSATE_BATTERY
+    NO_AUTORETURN_FROM_ALT_MENUES
+    CALIBRATION_RESETS_sumError
+    REMOTE_SETTING_ONLY
+    BLOCK_INTEGRATOR_AFTER_VALVE_CHANGE
+    BOOST_CONTROLER_AFTER_CHANGE
+    DISABLE_JTAG
+endef
+
+ifeq ($(RFM),1)
+  define GLOBAL_DEFINE_VARS +=
+    RFM_BAUD_RATE
+    RFM_DEVICE_ADDRESS
+    SECURITY_KEY_0
+    SECURITY_KEY_1
+    SECURITY_KEY_2
+    SECURITY_KEY_3
+    SECURITY_KEY_4
+    SECURITY_KEY_5
+    SECURITY_KEY_6
+    SECURITY_KEY_7
+    RFM_FREQ_MAIN
+    RFM_FREQ_FINE
+    RFM_TUNING
+  endef
+endif
+
+ifeq ($(MODBUS),1)
+  define GLOBAL_DEFINE_VARS +=
+    MODBUS_BAUD_RATE
+    MODBUS_DEVICE_ADDRESS
+  endef
+endif
+
+C_DEFINE_VARS = $(GLOBAL_DEFINE_VARS)
+A_DEFINE_VARS = $(GLOBAL_DEFINE_VARS)
 
 # Place -D or -U options here for C sources
-CDEFS = -DF_CPU=$(F_CPU)UL
+CDEFS = -DF_CPU=$(F_CPU)UL $(addprefix -D,$(foreach d,$(C_DEFINE_VARS),$(d)=$($(d))))
+
+ifeq ($(RFM_WIRE),MARIOJTAG)
+  CDEFS += -DRFM_WIRE_MARIOJTAG=1
+endif
+ifeq ($(RFM_WIRE),TK_INTERNAL)
+  CDEFS += -DRFM_WIRE_TK_INTERNAL=1
+endif
+ifeq ($(RFM_WIRE),JD_INTERNAL)
+  CDEFS += -DRFM_WIRE_JD_INTERNAL=1
+endif
+
+
+ifeq ($(HW),THERMOTRONIC)
+  CDEFS += -DTHERMOTRONIC=1
+endif
+ifeq ($(HW),HR25)
+  CDEFS += -DHR25=1
+endif
 
 
 # Place -D or -U options here for ASM sources
-ADEFS = -DF_CPU=$(F_CPU) -DXTEA_ENC
+ADEFS = -DF_CPU=$(F_CPU) -DXTEA_ENC $(addprefix -D,$(foreach d,$(A_DEFINE_VARS),$(d)=$($(d))))
 # We need only encryption
 # ADEFS+=-DXTEA_DEC
 
@@ -168,9 +228,9 @@ MCU_TO_PART= \
 # Incompatibilities handled below with $(error ...)
 # Define RFM to 0 to disable support for the RFM Radio Moodule in the Code
 ifeq ($(HW),THERMOTRONIC)
- RFM?=0
+  RFM?=0
 else
- RFM?=1
+  RFM?=1
 endif
 
 # Check options and issue an error if consistent (rather than silently forcing compatible options)
@@ -214,47 +274,10 @@ endif
 #  -Wa,...:      tell GCC to pass this to the assembler.
 #    -adhlns...: create assembler listing
 CFLAGS = -g$(DEBUG)
-CFLAGS += $(CDEFS)
-CFLAGS += $(REV)
-CFLAGS += -DRFM=$(RFM)
-ifeq ($(RFM),1)
-CFLAGS += -DRFM_BAUD_RATE=$(RFM_BAUD_RATE)
-CFLAGS += -DRFM_DEVICE_ADDRESS=$(RFM_DEVICE_ADDRESS)
-CFLAGS += -DSECURITY_KEY_0=$(SECURITY_KEY_0)
-CFLAGS += -DSECURITY_KEY_1=$(SECURITY_KEY_1)
-CFLAGS += -DSECURITY_KEY_2=$(SECURITY_KEY_2)
-CFLAGS += -DSECURITY_KEY_3=$(SECURITY_KEY_3)
-CFLAGS += -DSECURITY_KEY_4=$(SECURITY_KEY_4)
-CFLAGS += -DSECURITY_KEY_5=$(SECURITY_KEY_5)
-CFLAGS += -DSECURITY_KEY_6=$(SECURITY_KEY_6)
-CFLAGS += -DSECURITY_KEY_7=$(SECURITY_KEY_7)
-CFLAGS += -DRFM_FREQ_MAIN=$(RFM_FREQ_MAIN)
-CFLAGS += -DRFM_FREQ_FINE=$(RFM_FREQ_FINE)
-CFLAGS += -DRFM_TUNING=$(RFM_TUNING)
-endif
-CFLAGS += -DTEMP_COMPENSATE_OPTION=$(TEMP_COMPENSATE_OPTION)
-CFLAGS += -DHW_WINDOW_DETECTION=$(HW_WINDOW_DETECTION)
-CFLAGS += -DMENU_SHOW_BATTERY=$(MENU_SHOW_BATTERY)
-CFLAGS += -DMOTOR_COMPENSATE_BATTERY=$(MOTOR_COMPENSATE_BATTERY)
-CFLAGS += -DNO_AUTORETURN_FROM_ALT_MENUES=$(NO_AUTORETURN_FROM_ALT_MENUES)
-CFLAGS += -DCALIBRATION_RESETS_sumError=$(CALIBRATION_RESETS_sumError)
-CFLAGS += -DREMOTE_SETTING_ONLY=$(REMOTE_SETTING_ONLY)
-CFLAGS += -DBLOCK_INTEGRATOR_AFTER_VALVE_CHANGE=$(BLOCK_INTEGRATOR_AFTER_VALVE_CHANGE)
-CFLAGS += -DBOOST_CONTROLER_AFTER_CHANGE=$(BOOST_CONTROLER_AFTER_CHANGE)
-ifeq ($(RFM_WIRE),MARIOJTAG)
- CFLAGS += -DRFM_WIRE_MARIOJTAG=1
-else
- ifeq ($(RFM_WIRE),TK_INTERNAL)
-  CFLAGS += -DRFM_WIRE_TK_INTERNAL=1
- else
-  ifeq ($(RFM_WIRE),JD_INTERNAL)
-   CFLAGS += -DRFM_WIRE_JD_INTERNAL=1
-  endif
- endif
-endif
-CFLAGS += -DDISABLE_JTAG=$(DISABLE_JTAG)
 CFLAGS += $(FLAGS)
 CFLAGS += -O$(OPT)
+CFLAGS += $(CDEFS)
+CFLAGS += $(REV)
 CFLAGS += -funsigned-char
 CFLAGS += -funsigned-bitfields
 CFLAGS += -fpack-struct
@@ -277,13 +300,6 @@ CFLAGS += -Wl,--relax
 #CFLAGS += -ffunction-sections
 CFLAGS += -fdata-sections
 CFLAGS += -fno-toplevel-reorder
-
-ifeq ($(HW),THERMOTRONIC)
-    CFLAGS += -DTHERMOTRONIC=1
-endif
-ifeq ($(HW),HR25)
-    CFLAGS += -DHR25=1
-endif
 
 #---------------- Assembler Options ----------------
 #  -Wa,...:   tell GCC to pass this to the assembler.
