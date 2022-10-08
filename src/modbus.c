@@ -40,7 +40,7 @@
 
 
 #include "config.h"
-#include "com.h"
+#include "modbus.h"
 #include "common/avr_uart_i.h"
 #include "main.h"
 #include "common/rtc.h"
@@ -59,12 +59,298 @@
 
 #define ENABLE_LOCAL_COMMANDS 1
 
+
+
+void COM_print_debug(uint8_t type);
+
+#if RFM == 1
+void COM_wireless_command_parse(uint8_t *rfm_framebuf, uint8_t rfm_framepos);
+#endif
+
+void COM_debug_print_motor(int8_t dir, uint16_t m, uint8_t pwm);
+void COM_debug_print_temperature(uint16_t t);
+
+#if DEBUG_DUMP_RFM
+void COM_dump_packet(uint8_t *d, uint8_t len, bool mac_ok);
+// void COM_mac_ok(void);
+#else
+#define COM_dump_packet(d, len, mac_ok)
+// #define COM_mac_ok() ()
+#endif
+#if DEBUG_PRINT_ADDITIONAL_TIMESTAMPS
+void COM_print_time(uint8_t c);
+#else
+#define COM_print_time(c)
+#endif
+
+static void COM_putchar(char c);
+static void COM_flush(void);
+void COM_printStr16(const char *s, uint16_t x);
+
+enum modbus_function_codes {
+    MODBUS_FUNC_GET_VERSION,
+    MODBUS_FUNC_GET_FEATURES,
+    MODBUS_FUNC_GET_DEBUG,
+    MODBUS_FUNC_GET_CURRENT_TEMPERATURE,
+    MODBUS_FUNC_SET_VALVE,
+    MODBUS_FUNC_GET_INTERFACE_VALUES,
+    MODBUS_FUNC_GET_EVENTS,
+    MODBUS_FUNC_SET_TARGET_TEMPERATURE,
+    MODBUS_FUNC_SET_VALVE_ON_TEMPERATURE,
+    MODBUS_FUNC_SET_VALVE_OFF_TEMPERATURE,
+    MODBUS_FUNC_SET_TIME,
+    MODBUS_FUNC_SET_DATE,
+    MODBUS_FUNC_SET_SCHEDULE_TIMES,
+    MODBUS_FUNC_SET_SCHEDULE_TEMPERATURES,
+    MODBUS_FUNC_GET_TEMPERATURE_HISTORY,
+    MODBUS_FUNC_REBOOT,
+    MODBUS_FUNC_FWUPDATE,
+};
+
+struct __attribute__((packed)) modbus_get_version_request_data {
+
+};
+
+struct __attribute__((packed)) modbus_get_version_reply_data {
+
+};
+
+
+
+struct __attribute__((packed)) modbus_get_debug_request_data {
+
+};
+
+struct __attribute__((packed)) modbus_get_debug_reply_data {
+
+};
+
+
+
+struct __attribute__((packed)) modbus_get_current_temperature_request_data {
+
+};
+
+struct __attribute__((packed)) modbus_get_current_temperature_reply_data {
+
+};
+
+
+
+struct __attribute__((packed)) modbus_set_valve_request_data {
+
+};
+
+struct __attribute__((packed)) modbus_set_valve_reply_data {
+
+};
+
+
+
+struct __attribute__((packed)) modbus_get_interface_values_request_data {
+
+};
+
+struct __attribute__((packed)) modbus_get_interface_values_reply_data {
+
+};
+
+
+
+struct __attribute__((packed)) modbus_get_events_request_data {
+
+};
+
+struct __attribute__((packed)) modbus_get_events_reply_data {
+
+};
+
+
+
+struct __attribute__((packed)) modbus_set_target_temperature_request_data {
+
+};
+
+struct __attribute__((packed)) modbus_set_target_temperature_reply_data {
+
+};
+
+
+
+struct __attribute__((packed)) modbus_set_valve_on_temperature_request_data {
+
+};
+
+struct __attribute__((packed)) modbus_set_valve_on_temperature_reply_data {
+
+};
+
+
+
+struct __attribute__((packed)) modbus_set_valve_off_temperature_request_data {
+
+};
+
+struct __attribute__((packed)) modbus_set_valve_off_temperature_reply_data {
+
+};
+
+
+
+struct __attribute__((packed)) modbus_set_time_request_data {
+
+};
+
+struct __attribute__((packed)) modbus_set_time_reply_data {
+
+};
+
+
+
+struct __attribute__((packed)) modbus_set_date_request_data {
+
+};
+
+struct __attribute__((packed)) modbus_set_date_reply_data {
+
+};
+
+
+
+struct __attribute__((packed)) modbus_set_schedule_times_request_data {
+
+};
+
+struct __attribute__((packed)) modbus_set_schedule_times_reply_data {
+
+};
+
+
+
+struct __attribute__((packed)) modbus_set_schedule_temperatures_request_data {
+
+};
+
+struct __attribute__((packed)) modbus_set_schedule_temperatures_reply_data {
+
+};
+
+
+
+struct __attribute__((packed)) modbus_get_temperature_history_request_data {
+
+};
+
+struct __attribute__((packed)) modbus_get_temperature_history_reply_data {
+
+};
+
+
+
+struct __attribute__((packed)) modbus_reboot_request_data {
+
+};
+
+struct __attribute__((packed)) modbus_reboot_reply_data {
+
+};
+
+
+
+struct __attribute__((packed)) modbus_fwupdate_request_data {
+
+};
+
+struct __attribute__((packed)) modbus_fwupdate_reply_data {
+
+};
+
+
+union __attribute__((packed)) modbus_device_request_data {
+    struct modbus_get_version_request_data get_version;
+    struct modbus_get_debug_request_data get_debug;
+    struct modbus_get_current_temperature_request_data get_current_temperature;
+    struct modbus_set_valve_request_data set_valve;
+    struct modbus_get_interface_values_request_data get_interface_values;
+    struct modbus_get_events_request_data get_events;
+    struct modbus_set_target_temperature_request_data set_target_temperature;
+    struct modbus_set_valve_on_temperature_request_data set_valve_on_temperature;
+    struct modbus_set_valve_off_temperature_request_data set_valve_off_temperature;
+    struct modbus_set_time_request_data set_time;
+    struct modbus_set_date_request_data set_date;
+    struct modbus_set_schedule_times_request_data set_schedule_times;
+    struct modbus_set_schedule_temperatures_request_data set_schedule_temperatures;
+    struct modbus_get_temperature_history_request_data get_temperature_history;
+    struct modbus_reboot_request_data reboot;
+    struct modbus_fwupdate_request_data fwupdate;
+};
+
+
+union __attribute__((packed)) modbus_device_reply_data {
+    struct modbus_get_version_reply_data get_version;
+    struct modbus_get_debug_reply_data get_debug;
+    struct modbus_get_current_temperature_reply_data get_current_temperature;
+    struct modbus_set_valve_reply_data set_valve;
+    struct modbus_get_interface_values_reply_data get_interface_values;
+    struct modbus_get_events_reply_data get_events;
+    struct modbus_set_target_temperature_reply_data set_target_temperature;
+    struct modbus_set_valve_on_temperature_reply_data set_valve_on_temperature;
+    struct modbus_set_valve_off_temperature_reply_data set_valve_off_temperature;
+    struct modbus_set_time_reply_data set_time;
+    struct modbus_set_date_reply_data set_date;
+    struct modbus_set_schedule_times_reply_data set_schedule_times;
+    struct modbus_set_schedule_temperatures_reply_data set_schedule_temperatures;
+    struct modbus_get_temperature_history_reply_data get_temperature_history;
+    struct modbus_reboot_reply_data reboot;
+    struct modbus_fwupdate_reply_data fwupdate;
+};
+
+struct __attribute__((packed)) modbus_device_request_pdu {
+    uint8_t function_code;
+    union modbus_device_request_data;
+
+};
+
+struct __attribute__((packed)) modbus_device_reply_pdu {
+    uint8_t function_code;
+    union modbus_device_reply_data;
+
+};
+
+struct __attribute__((packed)) modbus_broadcast_pdu {
+    uint8_t function_code;
+};
+
+
+
+/**/
+/**/
+
+typedef uint8_t modbus_addr_t;
+typedef uint16_t modbus_checksum_t;
+
+struct __attribute__((packed)) modbus_serial_request_pdu {
+    modbus_addr_t addr;
+    union {
+        struct modbus_device_request_pdu dev_pdu;
+        struct modbus_broadcast_pdu broadcast_pdu;
+    };
+    modbus_checksum_t checksum;
+};
+
+struct __attribute__((packed)) modbus_serial_reply_pdu {
+    modbus_addr_t addr;
+    struct modbus_device_reply_pdu dev_pdu;
+    modbus_checksum_t checksum;
+};
+
 /*!
  *******************************************************************************
  *  \brief transmit bytes
  *
  *  \note
  ******************************************************************************/
+static
 void COM_putchar(char c)
 {
 	uart0_putc(c);
@@ -77,7 +363,8 @@ void COM_putchar(char c)
  *
  *  \note
  ******************************************************************************/
-static char COM_getchar(void)
+static
+char COM_getchar(void)
 {
 	char c;
 
@@ -91,6 +378,7 @@ static char COM_getchar(void)
  *
  *  \note
  ******************************************************************************/
+static
 void COM_flush(void)
 {
 	uart0_flush();
@@ -219,7 +507,7 @@ static void check_command_termination(uint8_t c) {
  *
  *  \note
  ******************************************************************************/
-void COM_init(void)
+void modbus_init(void)
 {
 #ifdef COM_UART
 	uart0_init();
@@ -416,7 +704,7 @@ static void print_idx(char t, uint8_t i)
  *      \note	Lxx\n - Lock keys, and return lock status (00=unlock, 01=lock, 02=status only)
  *
  ******************************************************************************/
-void COM_commad_parse(void)
+void modbus_handle_command(void)
 {
 	char c;
 
