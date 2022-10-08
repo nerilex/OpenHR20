@@ -122,6 +122,9 @@ typedef struct                                                  // each variable
 #endif
 	/* unused */
 #endif
+#if (MODBUS == 1)
+    /*    */ uint8_t modbus_devaddr;                           //!< HR20's own device address on the modbus
+#endif
 } config_t;
 
 extern config_t config;
@@ -288,6 +291,9 @@ uint8_t EEPROM ee_config[][4] = {       // must be alligned to 4 bytes
 	/*    */ {       RFM_TUNING_MODE,                     0,     0x00,                      0x01 }, //!< RFM12 tuning mode, 0 = tuning mode off (narrow, high data rate),
 	//                                                                                                                      1 = tuning mode on (wide, low data rate)
  #endif
+#endif
+#if (MODBUS == 1)
+    /*    */ {  MODBUS_DEVICE_ADDRESS, MODBUS_DEVICE_ADDRESS,       7,                       247 }, //!< RFM_devaddr: HR20's own device address in RFM radio networking.
 #endif
 };
 
