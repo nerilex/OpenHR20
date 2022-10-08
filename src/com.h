@@ -33,6 +33,8 @@
 
 #pragma once
 
+#if !defined(MODBUS) || MODBUS == 0
+
 #include "debug.h"
 
 char COM_tx_char_isr(void);
@@ -67,3 +69,7 @@ void COM_print_time(uint8_t c);
 void COM_putchar(char c);
 void COM_flush(void);
 void COM_printStr16(const char *s, uint16_t x);
+
+#else
+#include "modbus.h"
+#endif

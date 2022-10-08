@@ -35,6 +35,7 @@
 
 #define COM_init() modbus_init()
 #define COM_command_parse() modbus_handle_command()
+#define COM_print_debug(x)
 
 void modbus_init(void);
 void modbus_handle_command(void);
