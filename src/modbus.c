@@ -31,7 +31,7 @@
  * $Rev$
  */
 
-#if !defined(MODBUS) || MODBUS == 0
+#if defined(MODBUS) && MODBUS == 1
 
 #include <stdint.h>
 #include <stdio.h>
@@ -815,4 +815,4 @@ void COM_printStr16(const char *s, uint16_t x)
 }
 #endif
 
-#endif /* !defined(MODBUS) || MODBUS == 0 */
+#endif /* defined(MODBUS) && MODBUS == 1 */

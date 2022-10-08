@@ -24,6 +24,12 @@
 HW ?= HONEYWELL
 # HW ?= HR25
 
+#---------------- MODBUS Options ----------------
+
+MODBUS_BAUD_RATE=19200
+MODBUS_ADDRESS?=28
+
+
 #---------------- RFM Options ----------------
 
 # Set default baud rate for RFM

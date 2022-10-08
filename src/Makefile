@@ -87,6 +87,7 @@ SRC =  \
     controller.c \
     watch.c \
     com.c \
+    modbus.c \
     main.c \
     keyboard.c \
     adc.c \

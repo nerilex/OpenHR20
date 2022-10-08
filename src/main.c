@@ -55,7 +55,11 @@
 #include "eeprom.h"
 #include "debug.h"
 #include "menu.h"
-#include "com.h"
+#if MODBUS
+  #include "modbus.h"
+#else
+  #include "com.h"
+#endif
 #include "controller.h"
 #include "rtc.h"
 
